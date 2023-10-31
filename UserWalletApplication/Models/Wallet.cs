@@ -1,3 +1,5 @@
+// using System.ComponentModel.DataAnnotations;
+
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
@@ -5,14 +7,13 @@ namespace UserWalletApplication.Models;
 
 public class Wallet
 {
-    [Key] public Guid Id { get; set; }
+    public Guid Id { get; set; }
 
     [Required] public string Name { get; set; }
 
     [Required] public string Type { get; set; }
 
-    [Key]
-    [Required] public string AccountNumber { get; set; }
+    [Key] [Required] public string AccountNumber { get; set; }
 
     [Required] public string AccountScheme { get; set; }
 
