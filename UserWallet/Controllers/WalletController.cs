@@ -2,75 +2,98 @@ using Contracts.Request;
 using Microsoft.AspNetCore.Mvc;
 using UserWallet.Mappings;
 using UserWalletApplication.Models;
+using UserWalletApplication.Services.Wallet;
 
 namespace UserWallet.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
+[ApiController]
 public class WalletController : ControllerBase
 {
-    private readonly IUserRepository _userRepository;
+    private readonly IWalletRepository _walletRepository;
+    private readonly IWalletService _walletService;
 
-    public WalletController(IUserRepository userRepository)
+    public WalletController(IWalletRepository walletRepository, IWalletService walletService)
     {
-        _userRepository = userRepository;
+        _walletRepository = walletRepository;
+        _walletService = walletService;
     }
 
-    //GET all Users
-    [HttpGet("api/users")] // "api/users
-    public async Task<IActionResult> GetUsers(CancellationToken token)
+    //GET all Wallets
+    [HttpGet("api/wallets")]
+    public async Task<IActionResult> GetWallets(CancellationToken token)
     {
-        var user = await _userRepository.GetUserAsync(token);
-
-        return Ok(user);
+        var wallets = await _walletRepository.GetWalletsAsync(token);
+        return Ok(wallets.MapsToResponse());
     }
 
-    //GET UserById
-    [HttpGet("api/users/{id}")] // "api/users/{id}
+    //GET WalletByWalletsId
+    [HttpGet("api/wallets/{id}")]
     public async Task<IActionResult> Get([FromRoute] Guid id, CancellationToken token)
     {
-        var user = await _userRepository.GetUserById(id, token);
-        if (user == null) return NotFound();
+        var wallet = await _walletRepository.GetWalletByWalletId(id, token);
+        if (wallet == null)
+            return NotFound("Wallet not found.");
 
-
-        return Ok(user);
+        return Ok(wallet.MapsToResponse());
     }
 
-
-    //POST User
-    [HttpPost("api/users")] // "api/users
-    public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request, CancellationToken token)
-    {
-        if (request == null) return BadRequest("User data is invalid.");
-        if (!ModelState.IsValid) return BadRequest("Validation failed.");
-
-        var mapToUser = request.MapToUser();
-        await _userRepository.CreateUser(mapToUser ?? throw new InvalidOperationException(), token);
-
-        return CreatedAtAction(nameof(Get), new { id = mapToUser.Id });
-    }
-
-    //UPDATE User
-    [HttpPut("api/users/{id}")] // "api/users/{id}
-    public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateUserRequest request,
+    //POST Wallet
+    [HttpPost("api/wallets")]
+    public async Task<IActionResult> CreateWallet([FromBody] CreateWalletRequest request,
         CancellationToken token)
     {
-        if (request == null) return BadRequest();
-        if (!ModelState.IsValid) return BadRequest();
-        var mapToUser = request.MapToUser(id);
-        var updatedUser = await _userRepository.UpdateUser(mapToUser, token);
-        if (updatedUser is false) return NotFound();
-        return Ok(mapToUser);
+        if (request == null)
+            return BadRequest("Wallet data is invalid.");
+        if (!ModelState.IsValid)
+            return BadRequest("Validation failed.");
+
+        var maxedWalletsReached = _walletService.HasReachedWalletsLimit(request.UserId);
+        var accountWalletExists = _walletService.WalletExists(request.UserId, request.AccountNumber);
+        if (!maxedWalletsReached)
+        {
+            if (accountWalletExists)
+            {
+                var mapToWallet = request.MapToWallet();
+                await _walletRepository.CreateWallet(mapToWallet ?? throw new InvalidOperationException(),
+                    token);
+
+                return CreatedAtAction(nameof(Get), new { id = mapToWallet.Id }, mapToWallet.MapsToResponse());
+            }
+
+            return BadRequest("Wallet already exists.");
+        }
+
+
+        return BadRequest("Wallets limit reached.");
     }
 
-    //DELETE User
-    [HttpDelete("api/users/{id}")] // "api/users/{id}
+    //UPDATE Wallet
+    [HttpPut("api/wallets/{id}")] // "api/wallet/{id}
+    public async Task<IActionResult> UpdateWallet([FromRoute] Guid id,
+        [FromBody] UpdateWalletRequest request, CancellationToken token)
+    {
+        if (request == null)
+            return BadRequest("Wallet data is invalid.");
+        if (!ModelState.IsValid)
+            return BadRequest("Invalid data.");
+        var mapToWallet = request.MapToWallet(id);
+        var updateWallet = await _walletRepository.UpdateWallet(mapToWallet, token);
+        if (updateWallet is false)
+            return NotFound("Wallet not found");
+
+        return Ok(mapToWallet.MapsToResponse());
+    }
+
+    //DELETE Wallet
+    [HttpDelete("api/wallets/{id}")] // "api/wallet/{id}
     public async Task<IActionResult> Delete(Guid id, CancellationToken token)
     {
-        await _userRepository.UserExists(id);
-        var deleteUser = await _userRepository.DeleteUser(id, token);
-        if (!deleteUser)
-            return NotFound();
-        return Ok();
+        await _walletRepository.WalletExists(id, token);
+        var deleteWallet = await _walletRepository.DeleteWallet(id, token);
+        if (!deleteWallet)
+            return NotFound("Wallet not found.");
+
+        return Ok("Wallet successfully deleted.");
     }
 }
