@@ -6,7 +6,6 @@ using UserWalletApplication.Services.Wallet;
 
 namespace UserWallet.Controllers;
 
-[Route("api/[controller]")]
 [ApiController]
 public class WalletController : ControllerBase
 {
