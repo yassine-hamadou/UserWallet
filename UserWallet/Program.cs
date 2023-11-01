@@ -1,6 +1,5 @@
 using UserWalletApplication.Database;
-using UserWalletApplication.Repository.User;
-using UserWalletApplication.Repository.Wallet;
+using UserWalletApplication.Models;
 using UserWalletApplication.Services.Wallet;
 
 var builder = WebApplication.CreateBuilder(args);

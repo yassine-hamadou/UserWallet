@@ -1,138 +1,75 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using Contracts.Request;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using UserWalletApplication.Database;
+using UserWallet.Mappings;
 using UserWalletApplication.Models;
 
-namespace UserWallet.Controllers
+namespace UserWallet.Controllers;
+
+[ApiController]
+public class UserController : Controller
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class UserController : ControllerBase
+    private readonly IUserRepository _userRepository;
+
+    public UserController(IUserRepository userRepository)
     {
-        private readonly MyDbContext _context;
+        _userRepository = userRepository;
+    }
 
-        public UserController(MyDbContext context)
-        {
-            _context = context;
-        }
+    //GET all Users
+    [HttpGet("api/users")] // "api/users
+    public async Task<IActionResult> GetUsers(CancellationToken token)
+    {
+        var user = await _userRepository.GetUserAsync(token);
 
-        // GET: api/User
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
-        {
-          if (_context.Users == null)
-          {
-              return NotFound();
-          }
-            return await _context.Users.ToListAsync();
-        }
+        return Ok(user);
+    }
 
-        // GET: api/User/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(string id)
-        {
-          if (_context.Users == null)
-          {
-              return NotFound();
-          }
-            var user = await _context.Users.FindAsync(id);
+    //GET UserById
+    [HttpGet("api/users/{id}")] // "api/users/{id}
+    public async Task<IActionResult> Get([FromRoute] Guid id, CancellationToken token)
+    {
+        var user = await _userRepository.GetUserById(id, token);
+        if (user == null) return NotFound();
 
-            if (user == null)
-            {
-                return NotFound();
-            }
 
-            return user;
-        }
+        return Ok(user);
+    }
 
-        // PUT: api/User/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(string id, User user)
-        {
-            if (id != user.PhoneNumber)
-            {
-                return BadRequest();
-            }
 
-            _context.Entry(user).State = EntityState.Modified;
+    //POST User
+    [HttpPost("api/users")] // "api/users
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request, CancellationToken token)
+    {
+        if (request == null) return BadRequest("User data is invalid.");
+        if (!ModelState.IsValid) return BadRequest("Validation failed.");
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+        var mapToUser = request.MapToUser();
+        await _userRepository.CreateUser(mapToUser ?? throw new InvalidOperationException(), token);
 
-            return NoContent();
-        }
+        return CreatedAtAction(nameof(Get), new { id = mapToUser.Id });
+    }
 
-        // POST: api/User
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
-        {
-          if (_context.Users == null)
-          {
-              return Problem("Entity set 'MyDbContext.Users'  is null.");
-          }
-            _context.Users.Add(user);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (UserExists(user.PhoneNumber))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+    //UPDATE User
+    [HttpPut("api/users/{id}")] // "api/users/{id}
+    public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateUserRequest request,
+        CancellationToken token)
+    {
+        if (request == null) return BadRequest();
+        if (!ModelState.IsValid) return BadRequest();
+        var mapToUser = request.MapToUser(id);
+        var updatedUser = await _userRepository.UpdateUser(mapToUser, token);
+        if (updatedUser is false) return NotFound();
+        return Ok(mapToUser);
+    }
 
-            return CreatedAtAction("GetUser", new { id = user.PhoneNumber }, user);
-        }
-
-        // DELETE: api/User/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(string id)
-        {
-            if (_context.Users == null)
-            {
-                return NotFound();
-            }
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool UserExists(string id)
-        {
-            return (_context.Users?.Any(e => e.PhoneNumber == id)).GetValueOrDefault();
-        }
+    //DELETE User
+    [HttpDelete("api/users/{id}")] // "api/users/{id}
+    public async Task<IActionResult> Delete(Guid id, CancellationToken token)
+    {
+        await _userRepository.UserExists(id);
+        var deleteUser = await _userRepository.DeleteUser(id, token);
+        if (!deleteUser)
+            return NotFound();
+        return Ok();
     }
 }
