@@ -14,7 +14,7 @@ public static class WalletMapping
             Id = Guid.NewGuid(),
             Name = request.Name,
             Type = request.Type,
-            AccountNumber = request.AccountNumber,
+            AccountNumber = request.AccountNumber.Substring(0, 6),
             AccountScheme = request.AccountScheme,
             CreatedAt = request.CreatedAt,
             Owner = request.Owner,
