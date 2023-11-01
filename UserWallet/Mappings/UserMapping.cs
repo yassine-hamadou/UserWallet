@@ -33,7 +33,7 @@ public static class UserMapping
             Id = user.Id,
             UserName = user.UserName,
             PhoneNumber = user.PhoneNumber,
-            Wallets = user.UserWallets
+            UserWallets = user.UserWallets
         };
     }
 
