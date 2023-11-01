@@ -6,7 +6,7 @@ using UserWalletApplication.Models;
 namespace UserWallet.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class WalletController : ControllerBase
 {
     private readonly IUserRepository _userRepository;
