@@ -6,7 +6,7 @@ using UserWalletApplication.Models;
 namespace UserWallet.Controllers;
 
 [ApiController]
-public class WalletController : Controller
+public class WalletController : ControllerBase
 {
     private readonly IUserRepository _userRepository;
 

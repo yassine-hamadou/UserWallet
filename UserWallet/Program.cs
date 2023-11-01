@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http.Json;
 using UserWalletApplication.Database;
 using UserWalletApplication.Models;
 using UserWalletApplication.Services.Wallet;
@@ -11,6 +13,12 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 //in memory database
 builder.Services.AddDbContext<MyDbContext>();
+// builder.Services.AddControllers().AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

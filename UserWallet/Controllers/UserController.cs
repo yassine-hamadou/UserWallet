@@ -6,7 +6,7 @@ using UserWalletApplication.Models;
 namespace UserWallet.Controllers;
 
 [ApiController]
-public class UserController : Controller
+public class UserController : ControllerBase
 {
     private readonly IUserRepository _userRepository;
 
@@ -30,8 +30,6 @@ public class UserController : Controller
     {
         var user = await _userRepository.GetUserById(id, token);
         if (user == null) return NotFound();
-
-
         return Ok(user);
     }
 
