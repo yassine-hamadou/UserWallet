@@ -9,5 +9,5 @@ public class CreateUserRequest
 
     [Key] [Required] public string PhoneNumber { get; set; }
 
-    public List<Wallet> UserWallets { get; set; } = new();
+    // public List<Wallet> UserWallets { get; set; } = new();
 }

@@ -16,16 +16,6 @@ public static class UserMapping
         };
     }
 
-    public static User MapToUser(this UpdateUserRequest request, Guid id)
-    {
-        return new User
-        {
-            Id = id,
-            PhoneNumber = request.PhoneNumber,
-            UserName = request.UserName
-        };
-    }
-
     public static UserResponse MapsToResponse(this User user)
     {
         return new UserResponse
@@ -34,15 +24,6 @@ public static class UserMapping
             UserName = user.UserName,
             PhoneNumber = user.PhoneNumber,
             UserWallets = user.UserWallets
-        };
-    }
-
-
-    public static UsersResponse MapsToResponse(this IEnumerable<User> users)
-    {
-        return new UsersResponse
-        {
-            Users = users.Select(MapsToResponse)
         };
     }
 }

@@ -34,7 +34,7 @@ public class WalletRepository : IWalletRepository
             Id = Guid.NewGuid(),
             Name = wallet.Name,
             Type = wallet.Type,
-            AccountNumber = wallet.AccountNumber,
+            AccountNumber = wallet.AccountNumber.Substring(0, 6),
             AccountScheme = wallet.AccountScheme,
             CreatedAt = DateTime.UtcNow,
             Owner = wallet.Owner,

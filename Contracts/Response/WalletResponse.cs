@@ -18,5 +18,5 @@ public class WalletResponse
 
     [Required] public string Owner { get; init; }
 
-    public Guid UserId { get; init; }
+    [Required] public Guid UserId { get; init; }
 }

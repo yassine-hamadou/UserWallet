@@ -16,5 +16,5 @@ public class CreateWalletRequest
 
     [Required] public string Owner { get; set; }
 
-    public Guid UserId { get; set; }
+    [Required] public Guid UserId { get; set; }
 }

@@ -14,7 +14,7 @@ public static class WalletMapping
             Id = Guid.NewGuid(),
             Name = request.Name,
             Type = request.Type,
-            AccountNumber = request.AccountNumber.Substring(0, 6),
+            AccountNumber = request.AccountNumber,
             AccountScheme = request.AccountScheme,
             CreatedAt = request.CreatedAt,
             Owner = request.Owner,
@@ -22,22 +22,6 @@ public static class WalletMapping
         };
     }
 
-    public static Wallet
-        MapToWallet(this UpdateWalletRequest request,
-            Guid id)
-    {
-        return new Wallet
-        {
-            Id = id,
-            Name = request.Name,
-            Type = request.Type,
-            AccountNumber = request.AccountNumber.Substring(0, 6),
-            AccountScheme = request.AccountScheme,
-            CreatedAt = request.CreatedAt,
-            Owner = request.Owner,
-            UserId = request.UserId
-        };
-    }
 
     public static WalletResponse
         MapsToResponse(this Wallet wallet)
